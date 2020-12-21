@@ -282,6 +282,39 @@ void ExtractIsoSurface( int resX , int resY , int resZ , ConstPointer( float ) v
 	DeletePointer( flags[0] );
 	DeletePointer( flags[1] );
 }
+
+
+void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector< std::vector< int > >& polygons){
+	std::vector< TriangleIndex > triangles;
+	MinimalAreaTriangulation< float > mat;
+
+	for( int i=0 ; i<polygons.size() ; i++ )
+	{
+		std::vector< Point3D< float > > _polygon( polygons[i].size() );
+		std::vector< TriangleIndex > _triangles;
+		for( int j=0 ; j<polygons[i].size() ; j++ ) _polygon[j] = vertices[ polygons[i][j] ].p;
+		mat.GetTriangulation( _polygon , _triangles );
+		for( int j=0 ; j<_triangles.size() ; j++ )
+		{
+			TriangleIndex tri;
+			for( int k=0 ; k<3 ; k++ ) tri[k] = polygons[i][ _triangles[j][k] ];
+			triangles.push_back( tri );
+		}
+	}
+
+
+	int iidx = 1;
+	FILE* fp = fopen(path, "w+");
+	fprintf(fp, "# OBJ File\n");
+	for(IsoVertex v : vertices){
+		fprintf(fp, "v %3.4f, %3.4f, %3.4f\n", v.p.coords[0], v.p.coords[1], v.p.coords[2]);
+	}
+	for(TriangleIndex& idx : triangles){
+		fprintf(fp, "f %d %d %d\n", idx[0]+1, idx[1]+1, idx[2]+1);
+	}
+	fclose(fp);
+}
+
 int main( int argc , char* argv[] )
 {
 	float IsoValue = 0.0f;
@@ -290,7 +323,8 @@ int main( int argc , char* argv[] )
 	bool FlipOrientation = false;
 
 	const char* in_path = "raw_voxel_data.dat";
-	const char* out_path = "test.ply";
+	const char* out_ply_path = "test.ply";
+	const char* out_obj_path = "test.obj";
 	FILE* fp = fopen( in_path, "rb" );
 	if( !fp )
 	{
@@ -340,12 +374,14 @@ int main( int argc , char* argv[] )
 	//TODO: When this pointer is passed in DON'T DELETE IT!!!!!!
 	DeletePointer( voxelValues );
 
+
+	export_obj(out_obj_path, vertices, polygons);
 	
 	//Replace this with obj file format.
 	std::vector< PlyVertex< float > > _vertices( vertices.size() );
 	for( int i=0 ; i<vertices.size() ; i++ ) for( int d=0 ; d<3 ; d++ ) _vertices[i].point[d] = vertices[i].p[d];// * Dimensions.values[d];
 
-	PlyWritePolygons( out_path , _vertices , polygons , PlyVertex< float >::WriteProperties , PlyVertex< float >::WriteComponents , PLY_BINARY_NATIVE );
+	PlyWritePolygons( out_ply_path , _vertices , polygons , PlyVertex< float >::WriteProperties , PlyVertex< float >::WriteComponents , PLY_BINARY_NATIVE );
 	printf( "Vertices / Polygons: %d / %d\n" , (int)vertices.size() , (int)polygons.size() );
 
 	return EXIT_SUCCESS;
