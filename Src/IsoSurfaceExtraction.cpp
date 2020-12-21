@@ -371,11 +371,14 @@ int main( int argc , char* argv[] )
 	ExtractIsoSurface( res , res, res, voxelValues , IsoValue, vertices , polygons , FullCaseTable, QuadraticFit, FlipOrientation);
 	printf( "Got iso-surface\n");
 
+	export_obj(out_obj_path, vertices, polygons);
+	//TODO: When this pointer is passed in DON'T DELETE IT!!!!!!
 	//TODO: When this pointer is passed in DON'T DELETE IT!!!!!!
 	DeletePointer( voxelValues );
+	//TODO: When this pointer is passed in DON'T DELETE IT!!!!!!
+	//TODO: When this pointer is passed in DON'T DELETE IT!!!!!!
 
 
-	export_obj(out_obj_path, vertices, polygons);
 	
 	//Replace this with obj file format.
 	std::vector< PlyVertex< float > > _vertices( vertices.size() );
