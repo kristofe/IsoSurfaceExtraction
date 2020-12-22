@@ -34,10 +34,10 @@ DAMAGE.
 #include <sys/timeb.h>
 
 #include <cstring>
-#include <Src/Geometry.h>
-#include <Src/Ply.h>
-#include <Src/MarchingCubes.h>
-#include <Src/Array.h>
+#include "Geometry.h"
+#include "Ply.h"
+#include "MarchingCubes.h"
+#include "Array.h"
 
 struct TripleInt
 {
@@ -283,8 +283,7 @@ void ExtractIsoSurface( int resX , int resY , int resZ , ConstPointer( float ) v
 	DeletePointer( flags[1] );
 }
 
-
-void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector< std::vector< int > >& polygons){
+std::vector<TriangleIndex> triangulate_polygons(std::vector<IsoVertex>& vertices, std::vector< std::vector< int > >& polygons){
 	std::vector< TriangleIndex > triangles;
 	MinimalAreaTriangulation< float > mat;
 
@@ -302,6 +301,11 @@ void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector<
 		}
 	}
 
+	return triangles;
+}
+
+void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector< std::vector< int > >& polygons){
+	std::vector< TriangleIndex > triangles = triangulate_polygons(vertices, polygons);
 
 	int iidx = 1;
 	FILE* fp = fopen(path, "w+");
@@ -314,6 +318,21 @@ void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector<
 	}
 	fclose(fp);
 }
+
+std::vector< TripleInt > convert_triangles(std::vector< TriangleIndex >& triangles){
+	std::vector< TripleInt > tris;
+	tris.reserve(triangles.size());
+
+	for(TriangleIndex& idx : triangles){
+		TripleInt t;
+		t.values[0] = idx[0];
+		t.values[1] = idx[1];
+		t.values[2] = idx[2];
+		tris.push_back(t);
+	}
+	return tris;
+}
+
 
 int main( int argc , char* argv[] )
 {
@@ -372,15 +391,9 @@ int main( int argc , char* argv[] )
 	printf( "Got iso-surface\n");
 
 	export_obj(out_obj_path, vertices, polygons);
-	//TODO: When this pointer is passed in DON'T DELETE IT!!!!!!
-	//TODO: When this pointer is passed in DON'T DELETE IT!!!!!!
 	DeletePointer( voxelValues );
-	//TODO: When this pointer is passed in DON'T DELETE IT!!!!!!
-	//TODO: When this pointer is passed in DON'T DELETE IT!!!!!!
-
 
 	
-	//Replace this with obj file format.
 	std::vector< PlyVertex< float > > _vertices( vertices.size() );
 	for( int i=0 ; i<vertices.size() ; i++ ) for( int d=0 ; d<3 ; d++ ) _vertices[i].point[d] = vertices[i].p[d];// * Dimensions.values[d];
 
@@ -388,4 +401,29 @@ int main( int argc , char* argv[] )
 	printf( "Vertices / Polygons: %d / %d\n" , (int)vertices.size() , (int)polygons.size() );
 
 	return EXIT_SUCCESS;
+}
+
+void extract_quadratic_isosurface(const char* export_path, int res, float* voxelValues, float IsoValue)
+{
+	bool FullCaseTable = false;
+	bool QuadraticFit = true;
+	bool FlipOrientation = false;
+/*
+#define INDEX( x , y , z ) ( (x) + (y)*res+ (z)*res*res )
+
+	float min , max;
+	min = max = voxelValues[0];
+	for( int x=0 ; x<res ; x++ ) for( int y=0 ; y<res ; y++ ) for( int z=0 ; z<res; z++ )
+		min = std::min< float >( min , voxelValues[ INDEX(x,y,z) ] ) , max = std::max< float >( max , voxelValues[ INDEX(x,y,z) ] );
+	printf( "Value Range: [%f,%f]\n" , min , max );
+#undef INDEX
+*/
+
+	std::vector< IsoVertex > vertices;
+	std::vector< std::vector< int > > polygons;
+	ExtractIsoSurface( res , res, res, voxelValues , IsoValue, vertices , polygons , FullCaseTable, QuadraticFit, FlipOrientation);
+	printf( "Got iso-surface\n");
+
+	export_obj(export_path, vertices, polygons);
+	printf("exported %s\n", export_path);
 }
