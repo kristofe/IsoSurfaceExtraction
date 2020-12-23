@@ -119,12 +119,11 @@ isosurf.test()
 #isosurf.changeWorkingDir(ffi.new("char[]", correctWorkingDirectory.encode('ascii')))
 #isosurf.initialize()
 
-dim = 16 
+dim = 64 
 
 path = ffi.new("char[]","mc.obj".encode('ascii'))
 isovalue = 0.0
 sdf = FFIData(dim)
 sdf.copy_to_ffi()
-isosurf.extract_quadratic_isosurface(path, ffi.cast("int", dim), sdf.ffi_data, ffi.cast("float", isovalue))
+isosurf.run_quadratic_mc(path, ffi.cast("int", dim), sdf.ffi_data, ffi.cast("float", isovalue))
 
-#isosurf.cleanup()

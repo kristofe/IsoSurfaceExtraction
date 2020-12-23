@@ -38,6 +38,7 @@ DAMAGE.
 #include "Ply.h"
 #include "MarchingCubes.h"
 #include "Array.h"
+#include "IsoSurfaceExtraction.h"
 
 struct TripleInt
 {
@@ -403,21 +404,21 @@ int main( int argc , char* argv[] )
 	return EXIT_SUCCESS;
 }
 
+
 void extract_quadratic_isosurface(const char* export_path, int res, float* voxelValues, float IsoValue)
 {
 	bool FullCaseTable = false;
 	bool QuadraticFit = true;
 	bool FlipOrientation = false;
-/*
-#define INDEX( x , y , z ) ( (x) + (y)*res+ (z)*res*res )
 
-	float min , max;
-	min = max = voxelValues[0];
-	for( int x=0 ; x<res ; x++ ) for( int y=0 ; y<res ; y++ ) for( int z=0 ; z<res; z++ )
-		min = std::min< float >( min , voxelValues[ INDEX(x,y,z) ] ) , max = std::max< float >( max , voxelValues[ INDEX(x,y,z) ] );
-	printf( "Value Range: [%f,%f]\n" , min , max );
-#undef INDEX
-*/
+//#define INDEX( x , y , z ) ( (x) + (y)*res+ (z)*res*res )
+//
+//	float min , max;
+//	min = max = voxelValues[0];
+//	for( int x=0 ; x<res ; x++ ) for( int y=0 ; y<res ; y++ ) for( int z=0 ; z<res; z++ )
+//		min = std::min< float >( min , voxelValues[ INDEX(x,y,z) ] ) , max = std::max< float >( max , voxelValues[ INDEX(x,y,z) ] );
+//	printf( "Value Range: [%f,%f]\n" , min , max );
+//#undef INDEX
 
 	std::vector< IsoVertex > vertices;
 	std::vector< std::vector< int > > polygons;
@@ -427,3 +428,4 @@ void extract_quadratic_isosurface(const char* export_path, int res, float* voxel
 	export_obj(export_path, vertices, polygons);
 	printf("exported %s\n", export_path);
 }
+
