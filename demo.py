@@ -119,9 +119,17 @@ isosurf.test()
 
 dim = 16 
 
+
+ffi_tris  = ffi.new(f"int[{dim*dim*dim*3}]")
+ffi_verts = ffi.new(f"float[{dim*dim*dim*12}]")
+ffi_vert_count = ffi.new("int*")
+ffi_tri_count = ffi.new("int*")
+
 path = ffi.new("char[]","mc.obj".encode('ascii'))
 isovalue = 0.0
 sdf = FFIData(dim)
 sdf.copy_to_ffi()
-isosurf.run_quadratic_mc(path, ffi.cast("int", dim), sdf.ffi_data, ffi.cast("float", isovalue))
+#isosurf.run_quadratic_mc(path, ffi.cast("int", dim), sdf.ffi_data, ffi.cast("float", isovalue))
+isosurf.run_quadratic_mc(path, ffi.cast("int", dim), sdf.ffi_data, ffi.cast("float", isovalue), ffi_verts, ffi_vert_count, ffi_tris, ffi_tri_count)
+print(f'FROM PYTHON: vert count {ffi_vert_count[0]}, tri count {ffi_tri_count[0]}')
 

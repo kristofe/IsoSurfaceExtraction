@@ -305,7 +305,7 @@ std::vector<TriangleIndex> triangulate_polygons(std::vector<IsoVertex>& vertices
 	return triangles;
 }
 
-void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector< std::vector< int > >& polygons){
+void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector< std::vector< int > >& polygons, std::vector<float>& verts, std::vector<int>& indices){
 	std::vector< TriangleIndex > triangles = triangulate_polygons(vertices, polygons);
 
 	int iidx = 1;
@@ -313,9 +313,15 @@ void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector<
 	fprintf(fp, "# OBJ File\n");
 	for(IsoVertex v : vertices){
 		fprintf(fp, "v %3.4f %3.4f %3.4f\n", v.p.coords[0], v.p.coords[1], v.p.coords[2]);
+		verts.push_back(v.p.coords[0]);
+		verts.push_back(v.p.coords[1]);
+		verts.push_back(v.p.coords[2]);
 	}
 	for(TriangleIndex& idx : triangles){
 		fprintf(fp, "f %d %d %d\n", idx[0]+1, idx[1]+1, idx[2]+1);
+		indices.push_back(idx[0]);
+		indices.push_back(idx[1]);
+		indices.push_back(idx[2]);
 	}
 	fclose(fp);
 }
@@ -391,7 +397,9 @@ int main( int argc , char* argv[] )
 	ExtractIsoSurface( res , res, res, voxelValues , IsoValue, vertices , polygons , FullCaseTable, QuadraticFit, FlipOrientation);
 	printf( "Got iso-surface\n");
 
-	export_obj(out_obj_path, vertices, polygons);
+	std::vector< float > verts;
+	std::vector< int > tris;
+	export_obj(out_obj_path, vertices, polygons, verts, tris);
 	DeletePointer( voxelValues );
 
 	
@@ -405,7 +413,7 @@ int main( int argc , char* argv[] )
 }
 
 
-void extract_quadratic_isosurface(const char* export_path, int res, float* voxelValues, float IsoValue)
+void extract_quadratic_isosurface(const char* export_path, int res, float* voxelValues, float IsoValue, float* out_verts, int* out_vert_count, int* out_tris, int* out_tri_count)
 {
 	bool FullCaseTable = false;
 	bool QuadraticFit = true;
@@ -425,7 +433,17 @@ void extract_quadratic_isosurface(const char* export_path, int res, float* voxel
 	ExtractIsoSurface( res , res, res, voxelValues , IsoValue, vertices , polygons , FullCaseTable, QuadraticFit, FlipOrientation);
 	printf( "Got iso-surface\n");
 
-	export_obj(export_path, vertices, polygons);
+	std::vector< float > verts;
+	std::vector< int > tris;
+	export_obj(export_path, vertices, polygons, verts, tris);
+	*out_vert_count = verts.size();
+	*out_tri_count = tris.size();
+	for(int i = 0; i < *out_vert_count; i++){
+		out_verts[i] = verts[i];
+	}
+	for(int i = 0; i < *out_tri_count; i++){
+		out_tris[i] = tris[i];
+	}
 	printf("exported %s\n", export_path);
 }
 

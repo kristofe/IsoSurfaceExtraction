@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-void run_quadratic_mc(const char* export_path, int res, float* voxelValues, float IsoValue);
+void run_quadratic_mc(const char* export_path, int res, float* voxelValues, float IsoValue, float* out_verts, int* out_vert_count, int* out_tris, int* out_tri_count);
 void test();
 
 #ifdef __cplusplus
