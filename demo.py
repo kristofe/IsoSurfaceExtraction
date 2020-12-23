@@ -117,7 +117,7 @@ isosurf = ffi.dlopen(libname)
 print(isosurf)
 isosurf.test()
 
-dim = 8 
+dim = 16 
 
 path = ffi.new("char[]","mc.obj".encode('ascii'))
 isovalue = 0.0

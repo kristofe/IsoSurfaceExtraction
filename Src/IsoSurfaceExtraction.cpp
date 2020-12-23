@@ -312,7 +312,7 @@ void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector<
 	FILE* fp = fopen(path, "w+");
 	fprintf(fp, "# OBJ File\n");
 	for(IsoVertex v : vertices){
-		fprintf(fp, "v %3.4f, %3.4f, %3.4f\n", v.p.coords[0], v.p.coords[1], v.p.coords[2]);
+		fprintf(fp, "v %3.4f %3.4f %3.4f\n", v.p.coords[0], v.p.coords[1], v.p.coords[2]);
 	}
 	for(TriangleIndex& idx : triangles){
 		fprintf(fp, "f %d %d %d\n", idx[0]+1, idx[1]+1, idx[2]+1);
