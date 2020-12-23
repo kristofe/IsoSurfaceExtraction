@@ -116,10 +116,8 @@ else:
 isosurf = ffi.dlopen(libname)
 print(isosurf)
 isosurf.test()
-#isosurf.changeWorkingDir(ffi.new("char[]", correctWorkingDirectory.encode('ascii')))
-#isosurf.initialize()
 
-dim = 64 
+dim = 8 
 
 path = ffi.new("char[]","mc.obj".encode('ascii'))
 isovalue = 0.0

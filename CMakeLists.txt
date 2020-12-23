@@ -1,22 +1,13 @@
-# Required for statically linking the MSVC runtime
-#set(CMAKE_USER_MAKE_RULES_OVERRIDE
-#   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/c_flag_overrides.cmake)
-#set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
-#   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cxx_flag_overrides.cmake)
-#
 cmake_minimum_required  (VERSION 2.8)
 
 set(app_name quadratic_iso)
 project(${app_name})
 include(GenerateExportHeader)
-#include(cmake/defaults.cmake)
 
 FILE(GLOB MAIN_SOURCE Src/*.*)
-#FILE(GLOB PLATFORM_SOURCE source/PlatformClasses/*.*)
 
 set(SOURCES
    ${MAIN_SOURCE}
-#   ${PLATFORM_SOURCE}
 )
 
 set(HEADERS
@@ -47,11 +38,6 @@ if(APPLE)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wextra -Wno-ignored-qualifiers -Wno-unused-parameter -std=c++11")
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -g -Wextra -Wno-ignored-qualifiers -Wno-unused-parameter")
   add_definitions(-DTARGETMAC)
-  #include_directories(source/PlatformClasses/Apple/MacClasses)
-  #LIST(APPEND SOURCES source/PlatformClasses/Apple/MacClasses/Platform_Mac.mm)
-  #LIST(APPEND HEADERS source/PlatformClasses/Apple/MacClasses/Platform_Mac.h)
-
-#  link_directories(${CMAKE_CURRENT_SOURCE_DIR}/GLFW) #had to put here because the libs can conflict on linux
 ENDIF(APPLE)
 
 if(WIN32)
@@ -89,14 +75,6 @@ if(APPLE)
       )
 ENDIF(APPLE)
 
-if(WIN32)
-#cmake does not like if you add .lib to the libraries on windows!
-#  LIST(
-#      APPEND
-#      EXTRA_LIBS
-#      winmm
-#      )
-ENDIF(WIN32)
 
 if(UNIX AND NOT APPLE)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wextra -Wno-ignored-qualifiers -Wno-unused-parameter -std=c++11")
@@ -122,11 +100,11 @@ endif()
 
 # EXAMPLE CALL (Xcode)
 #cmake .. -G"Xcode"
-#Then build the _isosurface target
+#Then build the quadratic_iso target
 
 # EXAMPLE CALL (Unix Makefiles)
 #cmake .. -G"Unix Makefiles"
-#Then call: make  _isosurface -j8
+#Then call: make   -j8
 ##############################################################################
 ##############################################################################
 #  WARNING!!!!!!!!!!!!!!!!!!!!
