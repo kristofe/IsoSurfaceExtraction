@@ -106,7 +106,7 @@ if(platform.system() == "Darwin"):
     else:
       libname = libname_start + "d.dylib"
 elif(platform.system() == "Windows"):
-  libname = correctWorkingDirectory + "/source/Debug/isosurface.dll"
+  libname = correctWorkingDirectory + "/build/Debug/quadratic_iso.dll"
 else:
   if os.path.exists(libname_start + ".so"):
     libname = libname_start + ".so"
