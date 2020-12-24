@@ -446,6 +446,6 @@ void extract_quadratic_isosurface(const char* export_path, int res, float* voxel
 	for(int i = 0; i < tris.size(); i++){
 		out_tris[i] = tris[i];
 	}
-	printf("exported %s\n", export_path);
+	printf("created %d verts and %d tris\n", *out_vert_count, *out_tri_count);
 }
 
