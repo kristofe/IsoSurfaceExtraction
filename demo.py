@@ -9,7 +9,7 @@ from cffi import FFI
 
 ffi = FFI()
 
-class FFIData:
+class TestSDF:
   # Probably have to use torch.matmul. - Matrix Matrix multiply of Tensors
   #  If the first argument is 2-dimensional and the second argument is
   #  1-dimensional, the matrix-vector product is returned.
@@ -20,29 +20,7 @@ class FFIData:
     #self.verts = torch.rand(dim, dim, dim, 12)
     self.verts = torch.ones(dim, dim, dim, 12) * 0.5
 
-    #FIXME: Make sure that you cleanup the memory allocated here
-    #FIXME: Make sure that you cleanup the memory allocated here
-    #FIXME: Make sure that you cleanup the memory allocated here
-    self.ffi_data  = ffi.new(f"float[{dim*dim*dim}]")
-    self.ffi_grads  = ffi.new(f"float[{dim*dim*dim*3}]")
-    self.ffi_verts  = ffi.new(f"float[{dim*dim*dim*12}]")
     self.initialize()
-
-  def copy_to_ffi(self):
-    l = 0
-    ig = 0
-    iv = 0
-    for i in range(self.dim):
-      for j in range(self.dim):
-        for k in range(self.dim):
-          self.ffi_data[l] = self.data[k, j,i] # OpenGL orders arrays differently
-          for ii in range(3):
-            self.ffi_grads[ig] = self.grads[k, j,i, ii]
-            ig = ig + 1
-          for ii in range(12):
-            self.ffi_verts[iv] = self.verts[k, j,i, ii]
-            iv = iv + 1
-          l = l + 1
 
   def calc_sphere(self, i, j, k):
     d2 = (self.dim-1)/2
@@ -124,33 +102,25 @@ isosurf.test()
 dim = 16 
 
 
-#FIXME: Make sure that you cleanup the memory allocated here
-#FIXME: Make sure that you cleanup the memory allocated here
-#FIXME: Make sure that you cleanup the memory allocated here
-ffi_tris  = ffi.new(f"int[{dim*dim*dim*3}]")
-ffi_verts = ffi.new(f"float[{dim*dim*dim*12}]")
+np_tris = np.zeros((dim*dim*dim,3), dtype=np.int32)
+np_verts = np.zeros((dim*dim*dim,3), dtype=np.float32)
 ffi_vert_count = ffi.new("int*")
 ffi_tri_count = ffi.new("int*")
 
 path = ffi.new("char[]","mc.obj".encode('ascii'))
 isovalue = 0.0
-sdf = FFIData(dim)
-sdf.copy_to_ffi()
-#isosurf.run_quadratic_mc(path, ffi.cast("int", dim), sdf.ffi_data, ffi.cast("float", isovalue))
-isosurf.run_quadratic_mc(path, ffi.cast("int", dim), sdf.ffi_data, ffi.cast("float", isovalue), ffi_verts, ffi_vert_count, ffi_tris, ffi_tri_count)
+sdf = TestSDF(dim)
+isosurf.run_quadratic_mc(path, 
+                         ffi.cast("int", dim), 
+                         ffi.cast("float*",sdf.data.numpy().ctypes.data),
+                         ffi.cast("float", isovalue), 
+                         ffi.cast("float*",np_verts.ctypes.data), ffi_vert_count, 
+                         ffi.cast("int*",np_tris.ctypes.data), ffi_tri_count)
+
 print(f'FROM PYTHON: vert count {ffi_vert_count[0]}, tri count {ffi_tri_count[0]}')
 
-np_verts = np.zeros((ffi_vert_count[0], 3), dtype=np.float32)
-for i in range(ffi_vert_count[0]):
-  np_verts[i,0] = ffi_verts[i*3 + 0]
-  np_verts[i,1] = ffi_verts[i*3 + 1]
-  np_verts[i,2] = ffi_verts[i*3 + 2]
-
-np_tris = np.zeros((ffi_tri_count[0], 3), dtype=np.int32)
-for i in range(ffi_tri_count[0]):
-  np_tris[i,0] = ffi_tris[i*3 + 0]
-  np_tris[i,1] = ffi_tris[i*3 + 1]
-  np_tris[i,2] = ffi_tris[i*3 + 2]
+np_verts = np_verts[:ffi_vert_count[0],:]
+np_tris = np_tris[:ffi_tri_count[0],:]
 
 with open("verify_mc.obj", "w") as f:
   f.write("# OBJ file\n")
