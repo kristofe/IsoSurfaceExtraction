@@ -19,6 +19,10 @@ class FFIData:
     self.grads = torch.ones(dim, dim, dim, 3)
     #self.verts = torch.rand(dim, dim, dim, 12)
     self.verts = torch.ones(dim, dim, dim, 12) * 0.5
+
+    #FIXME: Make sure that you cleanup the memory allocated here
+    #FIXME: Make sure that you cleanup the memory allocated here
+    #FIXME: Make sure that you cleanup the memory allocated here
     self.ffi_data  = ffi.new(f"float[{dim*dim*dim}]")
     self.ffi_grads  = ffi.new(f"float[{dim*dim*dim*3}]")
     self.ffi_verts  = ffi.new(f"float[{dim*dim*dim*12}]")
@@ -120,6 +124,9 @@ isosurf.test()
 dim = 16 
 
 
+#FIXME: Make sure that you cleanup the memory allocated here
+#FIXME: Make sure that you cleanup the memory allocated here
+#FIXME: Make sure that you cleanup the memory allocated here
 ffi_tris  = ffi.new(f"int[{dim*dim*dim*3}]")
 ffi_verts = ffi.new(f"float[{dim*dim*dim*12}]")
 ffi_vert_count = ffi.new("int*")
@@ -132,4 +139,23 @@ sdf.copy_to_ffi()
 #isosurf.run_quadratic_mc(path, ffi.cast("int", dim), sdf.ffi_data, ffi.cast("float", isovalue))
 isosurf.run_quadratic_mc(path, ffi.cast("int", dim), sdf.ffi_data, ffi.cast("float", isovalue), ffi_verts, ffi_vert_count, ffi_tris, ffi_tri_count)
 print(f'FROM PYTHON: vert count {ffi_vert_count[0]}, tri count {ffi_tri_count[0]}')
+
+np_verts = np.zeros((ffi_vert_count[0], 3), dtype=np.float32)
+for i in range(ffi_vert_count[0]):
+  np_verts[i,0] = ffi_verts[i*3 + 0]
+  np_verts[i,1] = ffi_verts[i*3 + 1]
+  np_verts[i,2] = ffi_verts[i*3 + 2]
+
+np_tris = np.zeros((ffi_tri_count[0], 3), dtype=np.int32)
+for i in range(ffi_tri_count[0]):
+  np_tris[i,0] = ffi_tris[i*3 + 0]
+  np_tris[i,1] = ffi_tris[i*3 + 1]
+  np_tris[i,2] = ffi_tris[i*3 + 2]
+
+with open("verify_mc.obj", "w") as f:
+  f.write("# OBJ file\n")
+  for i in range(ffi_vert_count[0]):
+    f.write(f"v {np_verts[i,0]:3.4f} {np_verts[i,1]:3.4f} {np_verts[i,2]:3.4f}\n")
+  for i in range(ffi_tri_count[0]):
+    f.write(f"f {np_tris[i,0]+1:d} {np_tris[i,1]+1:d} {np_tris[i,2]+1:d}\n")
 

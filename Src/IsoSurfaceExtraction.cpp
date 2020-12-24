@@ -305,7 +305,7 @@ std::vector<TriangleIndex> triangulate_polygons(std::vector<IsoVertex>& vertices
 	return triangles;
 }
 
-void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector< std::vector< int > >& polygons, std::vector<float>& verts, std::vector<int>& indices){
+void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector< std::vector< int > >& polygons, std::vector<float>& verts, std::vector<int>& tris){
 	std::vector< TriangleIndex > triangles = triangulate_polygons(vertices, polygons);
 
 	int iidx = 1;
@@ -316,14 +316,16 @@ void export_obj(const char* path, std::vector<IsoVertex>& vertices, std::vector<
 		verts.push_back(v.p.coords[0]);
 		verts.push_back(v.p.coords[1]);
 		verts.push_back(v.p.coords[2]);
+		
 	}
 	for(TriangleIndex& idx : triangles){
 		fprintf(fp, "f %d %d %d\n", idx[0]+1, idx[1]+1, idx[2]+1);
-		indices.push_back(idx[0]);
-		indices.push_back(idx[1]);
-		indices.push_back(idx[2]);
+		tris.push_back(idx[0]);
+		tris.push_back(idx[1]);
+		tris.push_back(idx[2]);
 	}
 	fclose(fp);
+	printf("Exported %s with %d verts and %d tris\n", path, verts.size() / 3, tris.size() / 3);
 }
 
 std::vector< TripleInt > convert_triangles(std::vector< TriangleIndex >& triangles){
@@ -436,12 +438,12 @@ void extract_quadratic_isosurface(const char* export_path, int res, float* voxel
 	std::vector< float > verts;
 	std::vector< int > tris;
 	export_obj(export_path, vertices, polygons, verts, tris);
-	*out_vert_count = verts.size();
-	*out_tri_count = tris.size();
-	for(int i = 0; i < *out_vert_count; i++){
+	*out_vert_count = verts.size()/3;
+	*out_tri_count = tris.size()/3;
+	for(int i = 0; i < verts.size(); i++){
 		out_verts[i] = verts[i];
 	}
-	for(int i = 0; i < *out_tri_count; i++){
+	for(int i = 0; i < tris.size(); i++){
 		out_tris[i] = tris[i];
 	}
 	printf("exported %s\n", export_path);
