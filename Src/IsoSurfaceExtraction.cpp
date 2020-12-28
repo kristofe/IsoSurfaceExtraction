@@ -415,7 +415,7 @@ int main( int argc , char* argv[] )
 }
 
 
-void extract_quadratic_isosurface(const char* export_path, int res, float* voxelValues, float IsoValue, float* out_verts, int* out_vert_count, int* out_tris, int* out_tri_count)
+void extract_quadratic_isosurface(int res, float* voxelValues, float IsoValue, float* out_verts, int* out_vert_count, int* out_tris, int* out_tri_count)
 {
 	bool FullCaseTable = false;
 	bool QuadraticFit = true;
@@ -435,9 +435,36 @@ void extract_quadratic_isosurface(const char* export_path, int res, float* voxel
 	ExtractIsoSurface( res , res, res, voxelValues , IsoValue, vertices , polygons , FullCaseTable, QuadraticFit, FlipOrientation);
 	printf( "Got iso-surface\n");
 
-	std::vector< float > verts;
-	std::vector< int > tris;
-	export_obj(export_path, vertices, polygons, verts, tris);
+	//std::vector< float > verts;
+	//std::vector< int > tris;
+	std::vector< TriangleIndex > triangles = triangulate_polygons(vertices, polygons);
+
+	int vidx = 0;
+	int tidx = 0;
+	int vert_count = 0;
+	int tri_count = 0;
+	for(IsoVertex v : vertices){
+		vert_count++;
+		out_verts[vidx++] = v.p.coords[0];
+		out_verts[vidx++] = v.p.coords[1];
+		out_verts[vidx++] = v.p.coords[2];
+		//verts.push_back(v.p.coords[0]);
+		//verts.push_back(v.p.coords[1]);
+		//verts.push_back(v.p.coords[2]);
+		
+	}
+	for(TriangleIndex& idx : triangles){
+		tri_count++;
+		out_tris[tidx++] = idx[0];
+		out_tris[tidx++] = idx[1];
+		out_tris[tidx++] = idx[2];
+		//tris.push_back(idx[0]);
+		//tris.push_back(idx[1]);
+		//tris.push_back(idx[2]);
+	}
+	*out_vert_count = vertices.size();
+	*out_tri_count = triangles.size();
+	/*
 	*out_vert_count = verts.size()/3;
 	*out_tri_count = tris.size()/3;
 	for(int i = 0; i < verts.size(); i++){
@@ -446,6 +473,7 @@ void extract_quadratic_isosurface(const char* export_path, int res, float* voxel
 	for(int i = 0; i < tris.size(); i++){
 		out_tris[i] = tris[i];
 	}
+	*/
 	printf("created %d verts and %d tris\n", *out_vert_count, *out_tri_count);
 }
 

@@ -10,14 +10,10 @@ from cffi import FFI
 ffi = FFI()
 
 class TestSDF:
-  # Probably have to use torch.matmul. - Matrix Matrix multiply of Tensors
-  #  If the first argument is 2-dimensional and the second argument is
-  #  1-dimensional, the matrix-vector product is returned.
   def __init__(self, dim):
     self.dim = dim
     self.data = torch.FloatTensor(dim, dim, dim)
     self.grads = torch.ones(dim, dim, dim, 3)
-    #self.verts = torch.rand(dim, dim, dim, 12)
     self.verts = torch.ones(dim, dim, dim, 12) * 0.5
 
     self.initialize()
@@ -44,7 +40,6 @@ class TestSDF:
 
   def initialize(self):
     eps = 0.00001
-    # row versus column matrix. which is it?
     for i in range(self.dim):
       for j in range(self.dim):
         for k in range(self.dim):
