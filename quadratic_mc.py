@@ -47,33 +47,35 @@ class QuadraticMarchingCubes:
 
     print(self.isosurf)
   
-  def run(self, sdf_data, dim, path=None):
+  def run(self, isovalue, np_sdf_data, dim, path=None):
+    #Allocate the maximum possible amount of memory used for buffers
+    #passed into the C++ code.
     np_tris = np.zeros((dim*dim*dim,3), dtype=np.int32)
     np_verts = np.zeros((dim*dim*dim,3), dtype=np.float32)
     ffi_vert_count = self.ffi.new("int*")
     ffi_tri_count = self.ffi.new("int*")
 
-    #path = self.ffi.new("char[]","mc.obj".encode('ascii'))
-    isovalue = 0.0
+    #Run the C++ code.
     self.isosurf.run_quadratic_mc(
                             self.ffi.cast("int", dim), 
-                            self.ffi.cast("float*",sdf_data.numpy().ctypes.data),
+                            self.ffi.cast("float*",np_sdf_data.ctypes.data),
                             self.ffi.cast("float", isovalue), 
                             self.ffi.cast("float*",np_verts.ctypes.data), ffi_vert_count, 
                             self.ffi.cast("int*",np_tris.ctypes.data), ffi_tri_count)
 
-    print(f'FROM PYTHON: vert count {ffi_vert_count[0]}, tri count {ffi_tri_count[0]}')
-
+    #Trim off unused memory
     np_verts = np_verts[:ffi_vert_count[0],:]
     np_tris = np_tris[:ffi_tri_count[0],:]
 
-    with open("python_quadratic_mc.obj", "w") as f:
-      f.write("# OBJ file\n")
-      for i in range(ffi_vert_count[0]):
-        f.write(f"v {np_verts[i,0]:3.4f} {np_verts[i,1]:3.4f} {np_verts[i,2]:3.4f}\n")
-      for i in range(ffi_tri_count[0]):
-        f.write(f"f {np_tris[i,0]+1:d} {np_tris[i,1]+1:d} {np_tris[i,2]+1:d}\n")
+    if path is not None:
+      with open(path, "w") as f:
+        f.write("# OBJ file\n")
+        for i in range(ffi_vert_count[0]):
+          f.write(f"v {np_verts[i,0]:3.4f} {np_verts[i,1]:3.4f} {np_verts[i,2]:3.4f}\n")
+        for i in range(ffi_tri_count[0]):
+          f.write(f"f {np_tris[i,0]+1:d} {np_tris[i,1]+1:d} {np_tris[i,2]+1:d}\n")
 
+    return np_verts, np_tris
 
 
 
@@ -124,8 +126,8 @@ class TestSDF:
           self.grads[i,j,k,1] = gy/eps
           self.grads[i,j,k,2] = gz/eps
 
-
-dim = 64 
-sdf = TestSDF(dim)
-qmc = QuadraticMarchingCubes()
-qmc.run(sdf.data, dim)
+if __name__ == "__main__":
+  dim = 32 
+  sdf = TestSDF(dim)
+  qmc = QuadraticMarchingCubes()
+  qmc.run(0.0, sdf.data.numpy(), dim)
