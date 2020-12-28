@@ -439,12 +439,10 @@ void extract_quadratic_isosurface(int res, float* voxelValues, float IsoValue, f
 	//std::vector< int > tris;
 	std::vector< TriangleIndex > triangles = triangulate_polygons(vertices, polygons);
 
+	int max_tidx = res*res*res;
 	int vidx = 0;
 	int tidx = 0;
-	int vert_count = 0;
-	int tri_count = 0;
 	for(IsoVertex v : vertices){
-		vert_count++;
 		out_verts[vidx++] = v.p.coords[0];
 		out_verts[vidx++] = v.p.coords[1];
 		out_verts[vidx++] = v.p.coords[2];
@@ -454,7 +452,7 @@ void extract_quadratic_isosurface(int res, float* voxelValues, float IsoValue, f
 		
 	}
 	for(TriangleIndex& idx : triangles){
-		tri_count++;
+		if(tidx >= max_tidx) continue;
 		out_tris[tidx++] = idx[0];
 		out_tris[tidx++] = idx[1];
 		out_tris[tidx++] = idx[2];
@@ -474,6 +472,7 @@ void extract_quadratic_isosurface(int res, float* voxelValues, float IsoValue, f
 		out_tris[i] = tris[i];
 	}
 	*/
+	if(tidx >= max_tidx) printf("WARNING!!!!!!!!!\nWARNING!!!!!!!!!\nMax triangle count reached for the buffer size.  SOME TRIANGLE WERE NOT WRITTEN INTO THE BUFER\n");
 	printf("created %d verts and %d tris\n", *out_vert_count, *out_tri_count);
 }
 
